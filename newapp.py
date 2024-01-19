@@ -1,13 +1,23 @@
 from flask import Flask,request,jsonify
 import sqlite3
+import json
+import pymysql
 app=Flask(__name__)
 
 #connectin to database
 def db_connection():
     conn=None
     try:
-        conn=sqlite3.connect("books.sqlite")
-    except sqlite3.error as e:
+        #conn=sqlite3.connect("books.sqlite")
+        conn=pymysql.connect(
+        host=' sql12.freesqldatabase.com',
+        database='sql12678155',
+        user='sql12678155',
+        password='c9v5p8zpcW',
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor   
+ )
+    except pymysql.Error as e:
         print(e)
     return conn
 
@@ -97,7 +107,7 @@ def books():
     if request.method == "GET":
         cursor = conn.execute("SELECT * FROM book")
         books = [
-            dict(id=row[0], author=row[1], language=row[2], title=row[3])
+            dict(id=row['id'], author=row['author'], language=row['language'], title=row['title'])
             for row in cursor.fetchall()
         ]
         if books is not None:
@@ -107,7 +117,7 @@ def books():
         new_lang = request.form["language"]
         new_title = request.form["title"]
         sql = """INSERT INTO book (author, language, title)
-                 VALUES (?, ?, ?)"""  #question marks are placeholders.
+                 VALUES (%s, %s, %s)"""  #question marks are placeholders for sqlite
         cursor = cursor.execute(sql, (new_author, new_lang, new_title))
         conn.commit()
         return f"Book with the id:{cursor.lastrowid}created successfully", 201
@@ -129,9 +139,9 @@ def single_book(id):
 
     if request.method == "PUT":
         sql = """UPDATE book
-                SET title=?,
-                    author=?,
-                    language=?
+                SET title=%s,
+                    author=%s,
+                    language=%s
                 WHERE id=? """
 
         author = request.form["author"]

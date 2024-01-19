@@ -1,6 +1,7 @@
 from flask import Flask,request,jsonify
 
-
+import json
+import pymysql
 app=Flask(__name__)   #application instance
 
 #we are using a protocol called WSGI 
